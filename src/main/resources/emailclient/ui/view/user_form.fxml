@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="emailclient.controller.UserController"
+      spacing="10" alignment="CENTER" style="-fx-padding: 20;">
+
+    <Label text="Додати користувача" style="-fx-font-size: 18px;"/>
+
+    <TextField fx:id="nameField" promptText="Ім'я користувача"/>
+    <TextField fx:id="emailField" promptText="Email"/>
+    <PasswordField fx:id="passwordField" promptText="Пароль"/>
+
+    <Button text="Зберегти" onAction="#handleAddUser"/>
+    <Button text="Переглянути деталі" onAction="#handleShowUsers"/>
+
+    <TableView fx:id="userTable" prefWidth="400">
+        <columns>
+            <TableColumn fx:id="colId" text="ID" prefWidth="50"/>
+            <TableColumn fx:id="colName" text="Ім'я" prefWidth="100"/>
+            <TableColumn fx:id="colEmail" text="Email" prefWidth="150"/>
+        </columns>
+    </TableView>
+</VBox>
+
