@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="emailclient.controller.MessageController"
+      spacing="10" padding="15">
+
+    <Label text="Створення нового повідомлення" style="-fx-font-size: 16px; -fx-font-weight: bold;" />
+
+    <HBox spacing="10">
+        <Label text="Одержувач:"/>
+        <TextField fx:id="txtRecipient" promptText="email@example.com" />
+    </HBox>
+
+    <HBox spacing="10">
+        <Label text="Тема:"/>
+        <TextField fx:id="txtSubject" promptText="Тема повідомлення"/>
+    </HBox>
+
+    <Label text="Текст повідомлення:"/>
+    <TextArea fx:id="txtBody" prefHeight="200"/>
+
+    <HBox spacing="20">
+        <CheckBox fx:id="chkSign" text="Додати підпис"/>
+        <CheckBox fx:id="chkImportant" text="Позначити як важливе"/>
+    </HBox>
+
+    <Button text="Відправити" onAction="#handleSend" style="-fx-font-size: 14px"/>
+
+</VBox>
