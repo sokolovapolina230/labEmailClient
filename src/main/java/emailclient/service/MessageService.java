@@ -1,45 +1,73 @@
 package emailclient.service;
 
-import emailclient.model.Message;
-import emailclient.repository.MessageRepository;
 import emailclient.decorator.*;
+import emailclient.model.Account;
+import emailclient.model.Message;
+import emailclient.model.enums.ProtocolType;
+import emailclient.repository.AccountRepository;
+import emailclient.repository.MessageRepository;
+import emailclient.template.ReceiveMailHandler;
+import emailclient.template.Pop3ReceiveMailHandler;
+import emailclient.template.ImapReceiveMailHandler;
+
+import java.util.List;
 
 public class MessageService {
 
     private final MessageRepository messageRepository = new MessageRepository();
+    private final AccountRepository accountRepository = new AccountRepository();
 
-    public void send(Message message,
-                     boolean encrypt,
-                     boolean sign,
-                     boolean markImportant) {
+    // Send
+    public void send(Message message, boolean sign, boolean markImportant) {
 
-        // Базовий процесор
+        // Decorator
         MessageProcessor processor = new BasicMessageProcessor();
 
-        // Декоратори за умовою
-        if (sign) {
-            processor = new SignatureDecorator(processor);
-        }
+        if (sign) processor = new SignatureDecorator(processor);
+        if (markImportant) processor = new ImportantDecorator(processor);
 
-        if (markImportant) {
-            processor = new ImportantDecorator(processor);
-        }
+        String newBody = processor.process(message.getBody());
 
-        String processedBody = processor.process(message.getBody());
-
-        // Створення копії Message з новим текстом через Builder
-        Message processedMessage = Message.builder()
+        Message processed = Message.builder()
                 .id(message.getId())
                 .accountId(message.getAccountId())
                 .sender(message.getSender())
                 .recipient(message.getRecipient())
                 .subject(message.getSubject())
-                .body(processedBody)
+                .body(newBody)
                 .priority(message.getPriority())
                 .attachments(message.getAttachments())
                 .build();
 
-        // Зберегається в БД (імітація відправки)
-        messageRepository.add(processedMessage);
+        Account acc = accountRepository.getById(processed.getAccountId());
+
+        if (acc.getProtocol() != ProtocolType.SMTP)
+            throw new IllegalArgumentException("SMTP required for sending.");
+
+        sendViaSmtp(processed, acc);
+
+        messageRepository.add(processed);
+    }
+
+    private void sendViaSmtp(Message msg, Account acc) {
+        System.out.println("SMTP: connecting");
+        System.out.println("SMTP: authenticating " + acc.getEmail());
+        System.out.println("SMTP: sending to " + msg.getRecipient());
+        System.out.println("SMTP: disconnect");
+    }
+
+    // Receive
+    public List<Message> receive(int accountId) {
+
+        Account acc = accountRepository.getById(accountId);
+
+        ReceiveMailHandler handler = switch (acc.getProtocol()) {
+            case POP3 -> new Pop3ReceiveMailHandler();
+            case IMAP -> new ImapReceiveMailHandler();
+            case SMTP -> throw new IllegalArgumentException(
+                    "SMTP cannot receive messages.");
+        };
+
+        return handler.process(acc);
     }
 }

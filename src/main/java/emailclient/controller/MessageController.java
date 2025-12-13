@@ -14,7 +14,6 @@ public class MessageController {
     @FXML private TextField txtSubject;
     @FXML private TextArea txtBody;
 
-    @FXML private CheckBox chkEncrypt;
     @FXML private CheckBox chkSign;
     @FXML private CheckBox chkImportant;
 
@@ -34,7 +33,6 @@ public class MessageController {
         // Виклик service з передачею прапорців Decorator
         messageService.send(
                 msg,
-                chkEncrypt.isSelected(),
                 chkSign.isSelected(),
                 chkImportant.isSelected()
         );
