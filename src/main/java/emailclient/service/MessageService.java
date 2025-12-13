@@ -1,6 +1,9 @@
 package emailclient.service;
 
 import emailclient.decorator.*;
+import emailclient.interpreter.Expression;
+import emailclient.interpreter.FilterContext;
+import emailclient.interpreter.QueryParser;
 import emailclient.model.Account;
 import emailclient.model.Message;
 import emailclient.model.enums.ProtocolType;
@@ -70,4 +73,16 @@ public class MessageService {
 
         return handler.process(acc);
     }
+
+    public List<Message> filter(String query) {
+        List<Message> all = messageRepository.getAll();
+
+        QueryParser parser = new QueryParser();
+        Expression expr = parser.parse(query);
+
+        FilterContext ctx = new FilterContext(all);
+
+        return ctx.filter(expr);
+    }
+
 }

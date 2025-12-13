@@ -8,7 +8,13 @@
       fx:controller="emailclient.controller.MessageController"
       spacing="10" padding="15">
 
-    <Label text="Створення нового повідомлення" style="-fx-font-size: 16px; -fx-font-weight: bold;" />
+    <Label text="Створення нового повідомлення"
+           style="-fx-font-size: 16px; -fx-font-weight: bold;" />
+
+    <HBox spacing="10">
+        <TextField fx:id="txtSearch" promptText="Пошук листів (from: John AND subject: hello)"/>
+        <Button text="Пошук" onAction="#handleSearch"/>
+    </HBox>
 
     <HBox spacing="10">
         <Label text="Одержувач:"/>
@@ -29,5 +35,4 @@
     </HBox>
 
     <Button text="Відправити" onAction="#handleSend" style="-fx-font-size: 14px"/>
-
 </VBox>

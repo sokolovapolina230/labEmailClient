@@ -8,6 +8,8 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 
+import java.util.List;
+
 public class MessageController {
 
     @FXML private TextField txtRecipient;
@@ -39,5 +41,16 @@ public class MessageController {
 
         System.out.println("Повідомлення надіслано!");
     }
+
+    @FXML private TextField txtSearch;
+
+    @FXML
+    private void handleSearch() {
+        String q = txtSearch.getText();
+        List<Message> result = messageService.filter(q);
+
+        result.forEach(m -> System.out.println(m.getSubject()));
+    }
+
 }
 

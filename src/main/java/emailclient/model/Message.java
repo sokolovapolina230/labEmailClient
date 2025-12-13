@@ -93,5 +93,3 @@ public class Message {
     public Priority getPriority() { return priority; }
     public List<Attachment> getAttachments() { return attachments; }
 }
-
-
