@@ -4,7 +4,7 @@ import emailclient.model.Message;
 import emailclient.model.enums.Priority;
 
 import java.sql.*;
-        import java.util.ArrayList;
+import java.util.ArrayList;
 import java.util.List;
 
 public class MessageRepository implements Repository<Message> {

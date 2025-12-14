@@ -7,6 +7,9 @@ import emailclient.interpreter.QueryParser;
 import emailclient.model.Account;
 import emailclient.model.Message;
 import emailclient.model.enums.ProtocolType;
+import emailclient.network.EmailClient;
+import emailclient.network.Request;
+import emailclient.network.Response;
 import emailclient.repository.AccountRepository;
 import emailclient.repository.MessageRepository;
 import emailclient.template.ReceiveMailHandler;
@@ -19,38 +22,38 @@ public class MessageService {
 
     private final MessageRepository messageRepository = new MessageRepository();
     private final AccountRepository accountRepository = new AccountRepository();
+    private final EmailClient networkClient = new EmailClient("localhost", 5555);
+
 
     // Send
-    public void send(Message message, boolean sign, boolean markImportant) {
+    public void send(Message msg, boolean sign, boolean important) {
 
-        // Decorator
+        // локальна обробка Decorator
         MessageProcessor processor = new BasicMessageProcessor();
-
         if (sign) processor = new SignatureDecorator(processor);
-        if (markImportant) processor = new ImportantDecorator(processor);
-
-        String newBody = processor.process(message.getBody());
+        if (important) processor = new ImportantDecorator(processor);
 
         Message processed = Message.builder()
-                .id(message.getId())
-                .accountId(message.getAccountId())
-                .sender(message.getSender())
-                .recipient(message.getRecipient())
-                .subject(message.getSubject())
-                .body(newBody)
-                .priority(message.getPriority())
-                .attachments(message.getAttachments())
+                .id(msg.getId())
+                .accountId(msg.getAccountId())
+                .sender(msg.getSender())
+                .recipient(msg.getRecipient())
+                .subject(msg.getSubject())
+                .body(processor.process(msg.getBody()))
+                .priority(msg.getPriority())
+                .attachments(msg.getAttachments())
                 .build();
 
-        Account acc = accountRepository.getById(processed.getAccountId());
+        // надсилаємо на сервер
 
-        if (acc.getProtocol() != ProtocolType.SMTP)
-            throw new IllegalArgumentException("SMTP required for sending.");
+        Request req = new Request(Request.Type.SEND_MESSAGE);
+        req.put("msg", processed);
 
-        sendViaSmtp(processed, acc);
+        Response resp = networkClient.sendRequest(req);
 
-        messageRepository.add(processed);
+        System.out.println("SERVER RESPONSE: " + resp.getMessage());
     }
+
 
     private void sendViaSmtp(Message msg, Account acc) {
         System.out.println("SMTP: connecting");
@@ -60,29 +63,24 @@ public class MessageService {
     }
 
     // Receive
-    public List<Message> receive(int accountId) {
+    public List<Message> receive(int accId) {
 
-        Account acc = accountRepository.getById(accountId);
+        Request req = new Request(Request.Type.GET_MESSAGES);
+        req.put("accountId", accId);
 
-        ReceiveMailHandler handler = switch (acc.getProtocol()) {
-            case POP3 -> new Pop3ReceiveMailHandler();
-            case IMAP -> new ImapReceiveMailHandler();
-            case SMTP -> throw new IllegalArgumentException(
-                    "SMTP cannot receive messages.");
-        };
+        Response resp = networkClient.sendRequest(req);
 
-        return handler.process(acc);
+        return (List<Message>) resp.getData();
     }
 
-    public List<Message> filter(String query) {
-        List<Message> all = messageRepository.getAll();
+    public List<Message> filter(String q) {
 
-        QueryParser parser = new QueryParser();
-        Expression expr = parser.parse(query);
+        Request req = new Request(Request.Type.FILTER_MESSAGES);
+        req.put("query", q);
 
-        FilterContext ctx = new FilterContext(all);
+        Response resp = networkClient.sendRequest(req);
 
-        return ctx.filter(expr);
+        return (List<Message>) resp.getData();
     }
 
 }
